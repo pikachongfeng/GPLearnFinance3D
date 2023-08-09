@@ -1607,78 +1607,77 @@ class SymbolicTransformer(BaseSymbolic, TransformerMixin):
         
         for program in population:
             if program.raw_fitness_ < baseIC:
-                continue
-            formulation = program.__str__()
-            # Use regular expressions to find the number in the string
-            if len(re.findall(r'-?\d+\.\d+', formulation)) > 0:
-                # Use regular expressions to find all the numbers in the string
-                numbers = re.findall(r'-?\d+\.\d+', formulation)
+                formulation = program.__str__()
+                # Use regular expressions to find the number in the string
+                if len(re.findall(r'-?\d+\.\d+', formulation)) > 0:
+                    # Use regular expressions to find all the numbers in the string
+                    numbers = re.findall(r'-?\d+\.\d+', formulation)
 
-                # Replace each number with the desired string
-                new_string = formulation
-                for number in numbers:
-                    new_string = new_string.replace(number,
-                                                    "np.tile({}, (trainX.shape[0], trainX.shape[2]))".format(
-                                                        number))
-                formulation = new_string
-            for feature, feature_input in feature_dictionary.items():
-                formulation = formulation.replace(feature, feature_input)
+                    # Replace each number with the desired string
+                    new_string = formulation
+                    for number in numbers:
+                        new_string = new_string.replace(number,
+                                                        "np.tile({}, (trainX.shape[0], trainX.shape[2]))".format(
+                                                            number))
+                    formulation = new_string
+                for feature, feature_input in feature_dictionary.items():
+                    formulation = formulation.replace(feature, feature_input)
 
-            # 训练集计算指标
-            IC_cal_code = "alert_pearson({},Y,sample_weight)".format(formulation)
+                # 训练集计算指标
+                IC_cal_code = "alert_pearson({},Y,sample_weight)".format(formulation)
 
-            IR_cal_code = "alert_information_ratio({},Y,sample_weight)".format(formulation)
+                IR_cal_code = "alert_information_ratio({},Y,sample_weight)".format(formulation)
 
-            RankIC_cal_code = "alert_spearman({},Y,sample_weight)".format(formulation)
+                RankIC_cal_code = "alert_spearman({},Y,sample_weight)".format(formulation)
 
-            for key, value in all_cal_dictionary.items():
-                IC_cal_code = IC_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
-                IR_cal_code = IR_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
-                RankIC_cal_code = RankIC_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
+                for key, value in all_cal_dictionary.items():
+                    IC_cal_code = IC_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
+                    IR_cal_code = IR_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
+                    RankIC_cal_code = RankIC_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
 
-            for key, value in _fitness_map.items():
-                IC_cal_code = IC_cal_code.replace(key, "_fitness_map['{}']".format(key))
-                IR_cal_code = IR_cal_code.replace(key, "_fitness_map['{}']".format(key))
-                RankIC_cal_code = RankIC_cal_code.replace(key, "_fitness_map['{}']".format(key))
+                for key, value in _fitness_map.items():
+                    IC_cal_code = IC_cal_code.replace(key, "_fitness_map['{}']".format(key))
+                    IR_cal_code = IR_cal_code.replace(key, "_fitness_map['{}']".format(key))
+                    RankIC_cal_code = RankIC_cal_code.replace(key, "_fitness_map['{}']".format(key))
 
-            IC = eval(IC_cal_code)
-            IR = eval(IR_cal_code)
-            RankIC = eval(RankIC_cal_code)
+                IC = eval(IC_cal_code)
+                IR = eval(IR_cal_code)
+                RankIC = eval(RankIC_cal_code)
 
-            #  OOB计算指标
-            OOB_sample_weight = np.where(np.array(sample_weight) > 0, 0, 1)
-            OOB_IC_cal_code = "alert_pearson({},Y,OOB_sample_weight)".format(formulation)
+                #  OOB计算指标
+                OOB_sample_weight = np.where(np.array(sample_weight) > 0, 0, 1)
+                OOB_IC_cal_code = "alert_pearson({},Y,OOB_sample_weight)".format(formulation)
 
-            OOB_IR_cal_code = "alert_information_ratio({},Y,OOB_sample_weight)".format(formulation)
+                OOB_IR_cal_code = "alert_information_ratio({},Y,OOB_sample_weight)".format(formulation)
 
-            OOB_RankIC_cal_code = "alert_spearman({},Y,OOB_sample_weight)".format(formulation)
+                OOB_RankIC_cal_code = "alert_spearman({},Y,OOB_sample_weight)".format(formulation)
 
-            for key, value in all_cal_dictionary.items():
-                OOB_IC_cal_code = OOB_IC_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
-                OOB_IR_cal_code = OOB_IR_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
-                OOB_RankIC_cal_code = OOB_RankIC_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
+                for key, value in all_cal_dictionary.items():
+                    OOB_IC_cal_code = OOB_IC_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
+                    OOB_IR_cal_code = OOB_IR_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
+                    OOB_RankIC_cal_code = OOB_RankIC_cal_code.replace(key, "all_cal_dictionary['{}']".format(key))
 
-            for key, value in _fitness_map.items():
-                OOB_IC_cal_code = OOB_IC_cal_code.replace(key, "_fitness_map['{}']".format(key))
-                OOB_IR_cal_code = OOB_IR_cal_code.replace(key, "_fitness_map['{}']".format(key))
-                OOB_RankIC_cal_code = OOB_RankIC_cal_code.replace(key, "_fitness_map['{}']".format(key))
+                for key, value in _fitness_map.items():
+                    OOB_IC_cal_code = OOB_IC_cal_code.replace(key, "_fitness_map['{}']".format(key))
+                    OOB_IR_cal_code = OOB_IR_cal_code.replace(key, "_fitness_map['{}']".format(key))
+                    OOB_RankIC_cal_code = OOB_RankIC_cal_code.replace(key, "_fitness_map['{}']".format(key))
 
-            OOB_IC = eval(OOB_IC_cal_code)
-            OOB_IR = eval(OOB_IR_cal_code)
-            OOB_RankIC = eval(OOB_RankIC_cal_code)
+                OOB_IC = eval(OOB_IC_cal_code)
+                OOB_IR = eval(OOB_IR_cal_code)
+                OOB_RankIC = eval(OOB_RankIC_cal_code)
 
-            result = result.append({"表达式": program.__str__(),
-                                    "fitness": program.raw_fitness_,
-                                    "OOB fitness": program.oob_fitness_,
-                                    "训练集IC": IC,
-                                    "样本外IC": OOB_IC,
-                                    "训练集IR": IR,
-                                    "样本外IR": OOB_IR,
-                                    "训练集RankIC": RankIC,
-                                    "样本外RankIC": OOB_RankIC
-                                    },
-                                    ignore_index=True)
-            result.drop_duplicates(subset="表达式", inplace=True)
+                result = result.append({"表达式": program.__str__(),
+                                        "fitness": program.raw_fitness_,
+                                        "OOB fitness": program.oob_fitness_,
+                                        "训练集IC": IC,
+                                        "样本外IC": OOB_IC,
+                                        "训练集IR": IR,
+                                        "样本外IR": OOB_IR,
+                                        "训练集RankIC": RankIC,
+                                        "样本外RankIC": OOB_RankIC
+                                        },
+                                        ignore_index=True)
+                result.drop_duplicates(subset="表达式", inplace=True)
         result.to_csv("program of generation {}.csv".format(gen_num))
 
     def show_program(self, trainX, Y, feature_names, sample_weight=None, baseIC=False, show_tracing=(False, "./")):
